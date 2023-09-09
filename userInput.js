@@ -35,9 +35,23 @@ const onInput = async (event) => {
             dropdown.classList.remove('is-active')
             /*updates input value to selected movie from dropdown menu*/
             input.value = movie.Title;
+            /*pass selected movie from dropdown to onMovieSelect function which will show
+            * detailed results for specific movie*/
+            onMovieSelect(movie)
         })
 
         /*append option anchor to results class in html content*/
         resultsWrapper.appendChild(option)
     }
 }
+
+
+/*when user selects specific movie from dropdown menu*/
+const onMovieSelect = async (movie) => {
+    /*store api call in movieDetails passing in user selected movie using imdbID to call more
+    * information about specific movie*/
+    const movieDetails = await fetchDetailedData(movie)
+    /*add innerHTML to summary class in html file*/
+    document.querySelector('.summary').innerHTML = movieTemplate(movieDetails);
+}
+
