@@ -1,17 +1,64 @@
-/*connect to html classes for rendering content from js file to html*/
-const input = document.querySelector('input');
-const dropdown = document.querySelector('.dropdown')
-const resultsWrapper = document.querySelector('.results')
-/*Uses for/of loop to display
-* content from imdb api. Specifically, movie poster and title*/
-
-/*event listen for input change and perform data request from omdb api per user input. Calls
-* debounce function from utils.js with 2nd argument to determine wait time between user input and api call*/
-input.addEventListener('input', debounce(onInput, 1000))
-/*global event listener that handles closing the dropdown menu if focus is lost*/
-document.addEventListener('click', event => {
-    if (!root.contains(event.target)) {
-        dropdown.classList.remove('is-active')
+/*request detailed data from api to show when user selects specific movie from dropdown menu*/
+const fetchDetailedData = async (movie) => {
+    /*store data request in property of response*/
+    const detailedResponse = await axios.get('http://www.omdbapi.com/', {
+        /*add axios query parameters for request*/
+        params: {
+            apikey: "32c05230",
+            i: movie.imdbID,
+        }
+    })
+    /*return empty array if response results in error*/
+    if (detailedResponse.data.Error) {
+        return []
     }
-    console.log(event.target)
+    /*return data if no error*/
+    return detailedResponse.data
+}
+
+createAutoComplete({
+    root: document.querySelector('.autocomplete'),
+    renderOption(movie) {
+        /*Ensures no image will show if unavailable or broken = "N/A"*/
+        const imgSrc = movie.Poster === 'N/A' ? '' : movie.Poster;
+        return `
+        <img src="${imgSrc}" alt="movie posters"/>
+        ${movie.Title} (${movie.Year})`
+    },
+    onOptionSelect(movie) {
+        return onMovieSelect(movie)
+    },
+    inputValue(movie) {
+        return movie.Title
+    },
+    /*fetches data from imdb api using axios*/
+    async fetchData(searchTerm) {
+        /*store data request in property of response*/
+        const response = await axios.get('http://www.omdbapi.com/', {
+            /*add axios query parameters for request*/
+            params: {
+                apikey: "32c05230",
+                s: searchTerm,
+            }
+        })
+        /*return empty array if response results in error*/
+        if (response.data.Error) {
+            return []
+        }
+        /*return data if no error*/
+        return response.data.Search
+    }
 })
+
+/*when user selects specific movie from dropdown menu*/
+const onMovieSelect = async (movie) => {
+    /*store api call in movieDetails passing in user selected movie using imdbID to call more
+    * information about specific movie*/
+    const movieDetails = await fetchDetailedData(movie)
+    /*add innerHTML to summary class in html file*/
+    document.querySelector('.summary').innerHTML = movieTemplate(movieDetails);
+}
+
+
+
+
